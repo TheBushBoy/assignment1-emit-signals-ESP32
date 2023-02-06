@@ -71,19 +71,29 @@ void signal(int nbOfPulses = c) {
   // We use a value to count the duration of the pulses
   currentMicros = micros();
 
+  // Signal B
+  if(currentMicros - previousMicros < 50 * 1000 && countPulses == 0) {
+    digitalWrite(pinLedB, HIGH);
+    digitalWrite(pinLedA, LOW);
+  }
+
+  // Signal A
   // State 1
-  if(currentMicros - previousMicros < (a + 50 * countPulses) * 1000) {
+  else if(currentMicros - previousMicros < 50 + (a + 50 * countPulses) * 1000) {
+    digitalWrite(pinLedB, LOW);
     digitalWrite(pinLedA, HIGH);
   }
 
   // State 0
-  else if(currentMicros - previousMicros < (a + 50 * countPulses + b) * 1000) {
+  else if(currentMicros - previousMicros < 50 + (a + 50 * countPulses + b) * 1000) {
+    digitalWrite(pinLedB, LOW);
     digitalWrite(pinLedA, LOW);
   }
 
   // After c pulses we reset countPulses and we wait for d us
   else if(countPulses == (nbOfPulses - 1)) {
     if(currentMicros - previousMicros < d * 1000) {
+      digitalWrite(pinLedB, LOW);
       digitalWrite(pinLedA, LOW);
     }
     else {
