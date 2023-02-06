@@ -3,7 +3,6 @@ int a = 400;
 int b = 100;
 int c = 9;
 int d = 4500;
-int mod = 1;
 int countPulses = 0;
 
 // Pin definitions
@@ -45,6 +44,10 @@ void updateBtnState() {
   if(btn1 && !oldBtn1) {
     state1 = (state1 + 1) % 2; 
     oldBtn1 = 1;
+    
+    // By pressing the button it reset the signal
+    countPulses = 0;
+    previousMicros = 0;
   }
   else if(!btn1 && oldBtn1) {
     oldBtn1 = 0;
@@ -54,6 +57,10 @@ void updateBtnState() {
   if(btn2 && !oldBtn2) {
     state2 = (state2 + 1) % 2; 
     oldBtn2 = 1;
+    
+    // By pressing the button it reset the signal
+    countPulses = 0;
+    previousMicros = 0;
   }
   else if(!btn2 && oldBtn2) {
     oldBtn2 = 0;
@@ -74,15 +81,8 @@ void signal(int nbOfPulses = c) {
     digitalWrite(pinLedA, LOW);
   }
 
-  // Next pulse
-  else {
-    countPulses++;
-    previousMicros = currentMicros;
-  }
-
   // After c pulses we reset countPulses and we wait for d us
-  if(countPulses == c) {
-    currentMicros = micros();
+  else if(countPulses == (nbOfPulses - 1)) {
     if(currentMicros - previousMicros < d * 1000) {
       digitalWrite(pinLedA, LOW);
     }
@@ -91,24 +91,31 @@ void signal(int nbOfPulses = c) {
       previousMicros = currentMicros;
     }
   }
+
+  // Next pulse
+  else {
+    countPulses++;
+    previousMicros = currentMicros;
+  }
 }
 
 void loop() {
+  // Check state of the buttons
   updateBtnState();
-
-  // To test
-  if(state1) {
-    digitalWrite(pinLedB, HIGH);
-  }
-  else {
-    digitalWrite(pinLedB, LOW);
-  }
 
   // When we press the button, the sequence is played
   if(state1) {
-    signal();
+    // Reset Timer and enable stream of pulses,
+    // if switch 2 is enable, we are in mode 1 with 3 pulses, 9 pulses otherwise
+    if(state2) {
+      signal(3);
+    }
+    else {
+      signal();
+    }
   }
   else {
+    // Disable stream of pulses
     digitalWrite(pinLedA, LOW);
   }
 }
