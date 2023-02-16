@@ -1,3 +1,6 @@
+// Realtime
+#define TIME 1000
+
 // Pin definitions
 const unsigned short pinLedA = 15;
 const unsigned short pinLedB = 21;
@@ -11,7 +14,7 @@ const unsigned short c = 9;
 const unsigned short d = 4500;
 
 // Count number of pulses in one waveform
-unsigned char countPulses = 0;
+char countPulses = 0;
 
 // Switch selected
 bool state1 = 1;
@@ -61,6 +64,8 @@ void updateBtnState() {
   if(!isPlaying && pressed1) {
     state1 = (state1 + 1) % 2;
     pressed1 = 0;
+    // To prevent the conditions of the first pulse to be false
+    previousMicros = micros();
   }
   else if(!btn1 && oldBtn1) {
     oldBtn1 = 0;
@@ -88,7 +93,7 @@ void signal(int nbOfPulses = c) {
   currentMicros = micros();
 
   // Signal B
-  if(currentMicros - previousMicros < 50 * 1000 && countPulses == 0) {
+  if(currentMicros - previousMicros < 50 * TIME && countPulses == 0) {
     digitalWrite(pinLedB, HIGH);
     digitalWrite(pinLedA, LOW);
     isPlaying = true;
@@ -96,14 +101,14 @@ void signal(int nbOfPulses = c) {
 
   // Signal A
   // 1
-  else if(currentMicros - previousMicros < 50 + (a + 50 * countPulses) * 1000) {
+  else if(currentMicros - previousMicros < 50 + (a + 50 * countPulses) * TIME) {
     digitalWrite(pinLedB, LOW);
     digitalWrite(pinLedA, HIGH);
     isPlaying = true;
   }
 
   // 0
-  else if(currentMicros - previousMicros < 50 + (a + 50 * countPulses + b) * 1000) {
+  else if(currentMicros - previousMicros < 50 + (a + 50 * countPulses + b) * TIME) {
     digitalWrite(pinLedB, LOW);
     digitalWrite(pinLedA, LOW);
     isPlaying = true;
@@ -111,7 +116,7 @@ void signal(int nbOfPulses = c) {
 
   // After c pulses we reset countPulses and we wait for d us
   else if(countPulses == (nbOfPulses - 1)) {
-    if(currentMicros - previousMicros < d * 1000) {
+    if(currentMicros - previousMicros < d * TIME) {
       digitalWrite(pinLedB, LOW);
       digitalWrite(pinLedA, LOW);
       isPlaying = true;
